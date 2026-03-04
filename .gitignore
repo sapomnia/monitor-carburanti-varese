@@ -1,0 +1,5 @@
+# CSV raw scaricati localmente (non vanno nel repo)
+*.csv
+__pycache__/
+*.pyc
+.DS_Store

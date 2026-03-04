@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>⛽ Carburanti Convenienti</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue: #1a56db;
+      --blue-dark: #1447b3;
+      --blue-light: #dbeafe;
+      --green: #0d9488;
+      --green-light: #ccfbf1;
+      --amber: #d97706;
+      --amber-light: #fef3c7;
+      --gray-50: #f9fafb;
+      --gray-100: #f3f4f6;
+      --gray-200: #e5e7eb;
+      --gray-400: #9ca3af;
+      --gray-600: #4b5563;
+      --gray-700: #374151;
+      --gray-900: #111827;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--gray-50);
+      color: var(--gray-900);
+      min-height: 100vh;
+    }
+
+    /* HEADER */
+    header {
+      background: linear-gradient(135deg, var(--blue) 0%, #1e3a8a 100%);
+      color: white;
+      padding: 2.5rem 1rem 2rem;
+      text-align: center;
+    }
+    header h1 { font-size: 1.875rem; font-weight: 800; letter-spacing: -0.5px; }
+    header p  { margin-top: 0.5rem; opacity: 0.8; font-size: 0.95rem; }
+
+    /* LAYOUT */
+    .container { max-width: 720px; margin: 0 auto; padding: 2rem 1rem 4rem; }
+
+    /* CARD */
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 1.75rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.06);
+      margin-bottom: 1.25rem;
+    }
+
+    /* FORM */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    @media (max-width: 520px) { .form-grid { grid-template-columns: 1fr; } }
+
+    .field { display: flex; flex-direction: column; gap: 0.4rem; }
+    label { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--gray-600); }
+
+    input[type="text"], select {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 2px solid var(--gray-200);
+      border-radius: 10px;
+      font-size: 1rem;
+      color: var(--gray-900);
+      background: white;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      outline: none;
+      appearance: none;
+    }
+    input[type="text"]:focus, select:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(26,86,219,0.12);
+    }
+    input:disabled, select:disabled { background: var(--gray-100); color: var(--gray-400); cursor: not-allowed; }
+
+    .btn-search {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      width: 100%;
+      margin-top: 1.25rem;
+      padding: 0.9rem;
+      background: var(--blue);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+    .btn-search:hover:not(:disabled) { background: var(--blue-dark); }
+    .btn-search:active:not(:disabled) { transform: scale(0.98); }
+    .btn-search:disabled { background: var(--gray-400); cursor: not-allowed; }
+
+    /* LOADING */
+    .loading {
+      text-align: center;
+      padding: 2.5rem 1rem;
+      color: var(--gray-600);
+    }
+    .spinner {
+      width: 38px; height: 38px;
+      border: 3px solid var(--gray-200);
+      border-top-color: var(--blue);
+      border-radius: 50%;
+      animation: spin 0.75s linear infinite;
+      margin: 0 auto 1rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ALERT */
+    .alert {
+      padding: 1rem 1.25rem;
+      border-radius: 10px;
+      font-size: 0.95rem;
+    }
+    .alert-error { background: #fff1f2; color: #be123c; border: 1px solid #fda4af; }
+    .alert-info  { background: var(--blue-light); color: var(--blue-dark); border: 1px solid #93c5fd; }
+
+    /* RESULTS */
+    .results-header {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--gray-600);
+      margin-bottom: 1rem;
+    }
+
+    .result-card {
+      background: white;
+      border-radius: 14px;
+      padding: 1.5rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.05);
+      margin-bottom: 0.875rem;
+      border-left: 4px solid var(--gray-200);
+      transition: box-shadow 0.2s;
+    }
+    .result-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.12); }
+    .result-card.best { border-left-color: var(--green); }
+    .result-card.second { border-left-color: var(--blue); }
+
+    .result-rank {
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.6rem;
+    }
+    .result-card.best  .result-rank { color: var(--green); }
+    .result-card.second .result-rank { color: var(--blue); }
+    .result-rank span { margin-right: 0.3rem; }
+
+    .result-price {
+      font-size: 2.25rem;
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: -1px;
+    }
+    .result-card.best   .result-price { color: var(--green); }
+    .result-card.second .result-price { color: var(--blue); }
+    .result-price sub { font-size: 0.9rem; font-weight: 500; color: var(--gray-600); letter-spacing: 0; }
+
+    .result-info { margin-top: 0.875rem; display: flex; flex-direction: column; gap: 0.3rem; }
+    .result-name    { font-size: 1rem;   font-weight: 700; color: var(--gray-900); }
+    .result-address { font-size: 0.875rem; color: var(--gray-600); }
+    .result-gestore { font-size: 0.8rem;  color: var(--gray-400); }
+
+    .badges { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.75rem; }
+    .badge {
+      display: inline-block;
+      padding: 0.22rem 0.65rem;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 700;
+    }
+    .badge-self    { background: var(--blue-light);  color: var(--blue-dark); }
+    .badge-servito { background: var(--amber-light); color: var(--amber); }
+
+    .update-note {
+      text-align: center;
+      font-size: 0.78rem;
+      color: var(--gray-400);
+      margin-top: 1.5rem;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>⛽ Carburanti Convenienti</h1>
+  <p>Trova il distributore più economico nel tuo comune</p>
+</header>
+
+<div class="container">
+
+  <div class="card">
+    <div class="form-grid">
+      <div class="field">
+        <label for="comune-input">Comune</label>
+        <input
+          type="text"
+          id="comune-input"
+          placeholder="Es. Varese…"
+          autocomplete="off"
+          list="comuni-list"
+          disabled
+        />
+        <datalist id="comuni-list"></datalist>
+      </div>
+      <div class="field">
+        <label for="carburante-select">Carburante</label>
+        <select id="carburante-select" disabled>
+          <option value="">Seleziona…</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn-search" id="search-btn" disabled onclick="search()">
+      🔍 Cerca il più conveniente
+    </button>
+  </div>
+
+  <div id="results"></div>
+
+</div>
+
+<script>
+  let prezziData = null;
+
+  /* ── Caricamento dati ── */
+  async function loadData() {
+    const el = document.getElementById("results");
+    el.innerHTML = `
+      <div class="card loading">
+        <div class="spinner"></div>
+        <p>Caricamento prezzi in corso…</p>
+      </div>`;
+
+    try {
+      const resp = await fetch("data/prezzi.json");
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      prezziData = await resp.json();
+
+      /* Popola datalist comuni */
+      const dl = document.getElementById("comuni-list");
+      Object.keys(prezziData.dati).sort().forEach(c => {
+        const opt = document.createElement("option");
+        opt.value = c;
+        dl.appendChild(opt);
+      });
+
+      /* Popola select carburanti */
+      const sel = document.getElementById("carburante-select");
+      prezziData.carburanti.forEach(c => {
+        const opt = document.createElement("option");
+        opt.value = c;
+        opt.textContent = c;
+        sel.appendChild(opt);
+      });
+
+      document.getElementById("comune-input").disabled   = false;
+      document.getElementById("carburante-select").disabled = false;
+      document.getElementById("search-btn").disabled     = false;
+
+      el.innerHTML = `
+        <div class="card alert alert-info">
+          📅 Dati aggiornati al <strong>${prezziData.aggiornato}</strong> —
+          Digita un comune e scegli il carburante.
+        </div>`;
+    } catch (err) {
+      el.innerHTML = `
+        <div class="card alert alert-error">
+          ⚠️ Impossibile caricare i dati: <strong>${err.message}</strong><br>
+          <small>Riprova tra qualche minuto o controlla la connessione.</small>
+        </div>`;
+    }
+  }
+
+  /* ── Ricerca ── */
+  function search() {
+    if (!prezziData) return;
+
+    const comuneRaw = document.getElementById("comune-input").value.trim();
+    const comune    = comuneRaw.toUpperCase();
+    const carburante = document.getElementById("carburante-select").value;
+    const el        = document.getElementById("results");
+
+    if (!comune || !carburante) {
+      el.innerHTML = `<div class="card alert alert-error">⚠️ Inserisci un comune e seleziona un carburante.</div>`;
+      return;
+    }
+
+    const stazioni = prezziData.dati[comune]?.[carburante];
+
+    if (!stazioni || stazioni.length === 0) {
+      el.innerHTML = `
+        <div class="card alert alert-error">
+          Nessun dato disponibile per <strong>${comuneRaw}</strong> con carburante <strong>${carburante}</strong>.<br>
+          <small>Il comune potrebbe non avere distributori o i prezzi non sono stati comunicati.</small>
+        </div>`;
+      return;
+    }
+
+    const rankLabel = ["🏆 Più conveniente", "🥈 Secondo più economico", "🥉 Terzo", "4°", "5°"];
+    const rankClass = ["best", "second", "", "", ""];
+
+    let html = `<p class="results-header">${comuneRaw} · ${carburante} · ${stazioni.length} risultat${stazioni.length === 1 ? "o" : "i"}</p>`;
+
+    stazioni.forEach((s, i) => {
+      const selfBadge = s.s
+        ? `<span class="badge badge-self">🤖 Self service</span>`
+        : `<span class="badge badge-servito">👤 Servito</span>`;
+
+      html += `
+        <div class="result-card ${rankClass[i] || ""}">
+          <div class="result-rank"><span>${rankLabel[i] || `#${i+1}`}</span></div>
+          <div class="result-price">${s.p.toFixed(3)}<sub> €/L</sub></div>
+          <div class="result-info">
+            <div class="result-name">${escHtml(s.n)}</div>
+            <div class="result-address">📍 ${escHtml(s.i)}</div>
+            <div class="result-gestore">🏢 ${escHtml(s.g)}</div>
+          </div>
+          <div class="badges">${selfBadge}</div>
+        </div>`;
+    });
+
+    html += `<p class="update-note">Prezzi rilevati al ${prezziData.aggiornato} — fonte: MIMIT</p>`;
+    el.innerHTML = html;
+  }
+
+  function escHtml(str) {
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  /* ── Init ── */
+  document.addEventListener("DOMContentLoaded", () => {
+    loadData();
+    document.getElementById("comune-input").addEventListener("keydown", e => {
+      if (e.key === "Enter") search();
+    });
+  });
+</script>
+
+</body>
+</html>

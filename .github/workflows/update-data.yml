@@ -1,0 +1,36 @@
+name: Aggiorna prezzi carburanti
+
+on:
+  schedule:
+    # Ogni mattina alle 08:15 CET (07:15 UTC in inverno, in estate aggiusta a 06:15)
+    - cron: "15 7 * * *"
+  workflow_dispatch: # Permette esecuzione manuale dalla UI di GitHub
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Installa dipendenze
+        run: pip install requests
+
+      - name: Aggiorna prezzi
+        run: python scripts/update_data.py
+
+      - name: Commit e push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/prezzi.json
+          git diff --staged --quiet || git commit -m "chore: aggiorna prezzi carburanti $(date +%Y-%m-%d)"
+          git push
