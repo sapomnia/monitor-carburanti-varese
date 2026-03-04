@@ -2,15 +2,26 @@ name: Aggiorna prezzi carburanti
 
 on:
   schedule:
-    # Ogni mattina alle 08:15 CET (07:15 UTC in inverno, in estate aggiusta a 06:15)
+    # Ogni mattina alle 08:15 CET (07:15 UTC in inverno)
     - cron: "15 7 * * *"
   workflow_dispatch: # Permette esecuzione manuale dalla UI di GitHub
 
+# Permessi per il deploy su GitHub Pages via API
+permissions:
+  contents: read   # legge il repo (codice + anagrafica)
+  pages: write     # scrive su GitHub Pages
+  id-token: write  # necessario per il deploy OIDC
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true  # se parte un secondo job, annulla il precedente
+
 jobs:
-  update:
+  update-and-deploy:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
       - name: Checkout repository
@@ -24,13 +35,20 @@ jobs:
       - name: Installa dipendenze
         run: pip install requests
 
-      - name: Aggiorna prezzi
+      - name: Genera prezzi.json
+        # Lo script scarica il CSV MIMIT e scrive data/prezzi.json sul disco
+        # Il file NON viene committato: esiste solo durante questa esecuzione
         run: python scripts/update_data.py
 
-      - name: Commit e push
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/prezzi.json
-          git diff --staged --quiet || git commit -m "chore: aggiorna prezzi carburanti $(date +%Y-%m-%d)"
-          git push
+      - name: Configura GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Carica artefatto Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # Carica tutto il repo + il prezzi.json appena generato
+          path: "."
+
+      - name: Deploy su GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

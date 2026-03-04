@@ -3,3 +3,7 @@
 __pycache__/
 *.pyc
 .DS_Store
+
+# prezzi.json è generato al volo dal GitHub Action e deployato
+# direttamente su Pages senza essere mai committato nel repo
+data/prezzi.json

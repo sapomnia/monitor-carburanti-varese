@@ -187,6 +187,7 @@
     }
     .badge-self    { background: var(--blue-light);  color: var(--blue-dark); }
     .badge-servito { background: var(--amber-light); color: var(--amber); }
+    .badge-date    { background: var(--gray-100);    color: var(--gray-600); }
 
     .update-note {
       text-align: center;
@@ -331,12 +332,24 @@
             <div class="result-address">📍 ${escHtml(s.i)}</div>
             <div class="result-gestore">🏢 ${escHtml(s.g)}</div>
           </div>
-          <div class="badges">${selfBadge}</div>
+          <div class="badges">
+            ${selfBadge}
+            ${s.d ? `<span class="badge badge-date">🕐 ${formatDate(s.d)}</span>` : ""}
+          </div>
         </div>`;
     });
 
     html += `<p class="update-note">Prezzi rilevati al ${prezziData.aggiornato} — fonte: MIMIT</p>`;
     el.innerHTML = html;
+  }
+
+  /* Converte "DD/MM/YYYY HH:MM:SS" in "DD/MM/YYYY alle HH:MM" */
+  function formatDate(dtComu) {
+    if (!dtComu) return "";
+    const [datePart, timePart] = dtComu.split(" ");
+    if (!timePart) return datePart;
+    const hm = timePart.split(":").slice(0, 2).join(":");
+    return `${datePart} alle ${hm}`;
   }
 
   function escHtml(str) {

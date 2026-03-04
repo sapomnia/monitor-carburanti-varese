@@ -77,6 +77,7 @@ def parse_prezzi(content: str, anagrafica: dict) -> dict:
             "n": imp["n"],
             "i": imp["i"],
             "g": imp["g"],
+            "d": row.get("dtComu", "").strip(),
         })
 
     print(f"  Impianti senza anagrafica saltati: {skipped}")
