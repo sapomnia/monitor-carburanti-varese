@@ -8,9 +8,9 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --blue: #1a56db;
-      --blue-dark: #1447b3;
-      --blue-light: #dbeafe;
+      --blue: #991525;
+      --blue-dark: #7a1020;
+      --blue-light: #fde8ea;
       --green: #0d9488;
       --green-light: #ccfbf1;
       --amber: #d97706;
@@ -33,7 +33,7 @@
 
     /* HEADER */
     header {
-      background: linear-gradient(135deg, var(--blue) 0%, #1e3a8a 100%);
+      background: linear-gradient(135deg, var(--blue) 0%, #6b0f1a 100%);
       color: white;
       padding: 2.5rem 1rem 2rem;
       text-align: center;
@@ -78,7 +78,7 @@
     }
     input[type="text"]:focus, select:focus {
       border-color: var(--blue);
-      box-shadow: 0 0 0 3px rgba(26,86,219,0.12);
+      box-shadow: 0 0 0 3px rgba(153,21,37,0.12);
     }
     input:disabled, select:disabled { background: var(--gray-100); color: var(--gray-400); cursor: not-allowed; }
 
@@ -126,7 +126,7 @@
       font-size: 0.95rem;
     }
     .alert-error { background: #fff1f2; color: #be123c; border: 1px solid #fda4af; }
-    .alert-info  { background: var(--blue-light); color: var(--blue-dark); border: 1px solid #93c5fd; }
+    .alert-info  { background: var(--blue-light); color: var(--blue-dark); border: 1px solid #fca5a5; }
 
     /* RESULTS */
     .results-header {
@@ -252,9 +252,9 @@
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
       prezziData = await resp.json();
 
-      /* Popola datalist comuni */
+      /* Popola datalist — solo comuni della provincia di Varese */
       const dl = document.getElementById("comuni-list");
-      Object.keys(prezziData.dati).sort().forEach(c => {
+      (prezziData.comuni_va || Object.keys(prezziData.dati)).sort().forEach(c => {
         const opt = document.createElement("option");
         opt.value = c;
         dl.appendChild(opt);

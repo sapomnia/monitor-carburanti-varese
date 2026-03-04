@@ -104,9 +104,19 @@ def main():
             data[comune][carb] = data[comune][carb][:TOP_N]
             all_carburanti.add(carb)
 
+    # Comuni della provincia di Varese presenti nei dati
+    comuni_va = sorted(
+        imp["c"] for imp in anagrafica.values()
+        if imp.get("prov") == "VA" and imp["c"] in data
+    )
+    # Deduplicazione mantenendo l'ordine
+    seen = set()
+    comuni_va = [c for c in comuni_va if not (c in seen or seen.add(c))]
+
     output = {
         "aggiornato": estrazione or str(date.today()),
         "carburanti": sorted(all_carburanti),
+        "comuni_va": comuni_va,
         "dati": data,
     }
 
