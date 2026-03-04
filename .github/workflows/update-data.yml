@@ -1,6 +1,8 @@
 name: Aggiorna prezzi carburanti
 
 on:
+  push:
+    branches: [main]  # Si attiva ad ogni push → risolve il bootstrap iniziale
   schedule:
     # Ogni mattina alle 08:15 CET (07:15 UTC in inverno)
     - cron: "15 7 * * *"
