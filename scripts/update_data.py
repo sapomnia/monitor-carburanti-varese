@@ -4,8 +4,8 @@ Eseguito ogni mattina dal GitHub Action.
 """
 import csv
 import json
-import io
 import sys
+import time
 from datetime import date
 
 try:
@@ -17,7 +17,8 @@ except ImportError:
 PREZZI_URL = "https://www.mimit.gov.it/images/exportCSV/prezzo_alle_8.csv"
 ANAGRAFICA_PATH = "data/anagrafica.json"
 OUTPUT_PATH = "data/prezzi.json"
-TOP_N = 5  # stazioni più convenienti per ogni combinazione comune/carburante
+TOP_N = 5      # stazioni più convenienti per ogni combinazione comune/carburante
+MAX_RETRIES = 3  # tentativi di download (il MIMIT ogni tanto va in timeout)
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (compatible; carburanti-bot/1.0)",
@@ -26,16 +27,25 @@ HEADERS = {
 
 
 def download_prezzi() -> str:
-    print(f"Download prezzi da {PREZZI_URL}...")
-    resp = requests.get(PREZZI_URL, headers=HEADERS, timeout=60)
-    resp.raise_for_status()
-    # Il file è ISO-8859-1 o UTF-8: proviamo entrambi
-    for enc in ("utf-8", "latin-1"):
+    for attempt in range(1, MAX_RETRIES + 1):
         try:
-            return resp.content.decode(enc)
-        except UnicodeDecodeError:
-            continue
-    return resp.text
+            print(f"Download prezzi da {PREZZI_URL} (tentativo {attempt}/{MAX_RETRIES})...")
+            resp = requests.get(PREZZI_URL, headers=HEADERS, timeout=90)
+            resp.raise_for_status()
+            for enc in ("utf-8", "latin-1"):
+                try:
+                    return resp.content.decode(enc)
+                except UnicodeDecodeError:
+                    continue
+            return resp.text
+        except (requests.ConnectionError, requests.Timeout) as e:
+            print(f"  Errore: {e}")
+            if attempt < MAX_RETRIES:
+                wait = 30 * attempt  # 30s, 60s
+                print(f"  Riprovo tra {wait}s...")
+                time.sleep(wait)
+            else:
+                raise
 
 
 def parse_prezzi(content: str, anagrafica: dict) -> dict:
